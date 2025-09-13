@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load project_extras %}
+
+{% block title %}{% if is_editing %}Edit Grade{% else %}Grade Project{% endif %} - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-award"></i> {% if is_editing %}Edit Grade{% else %}Grade Project{% endif %}</h2>
+        <p class="text-muted mb-0">{{ project.title }} by {{ project.student.first_name }} {{ project.student.last_name }}</p>
+    </div>
+    <a href="{% url 'teacher_projects' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Projects
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Project Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Project Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Student</h6>
+                        <p class="mb-0">{{ project.student.first_name }} {{ project.student.last_name }}</p>
+                        <small class="text-muted">{{ project.student.username }}</small>
+                        {% if project.student.student_profile %}
+                            <br><small class="text-muted">ID: {{ project.student.student_profile.student_id }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Submission Details</h6>
+                        <p class="mb-0">Submitted: {{ project.submitted_at|date:"M d, Y H:i" }}</p>
+                        <small class="text-muted">Due: {{ project.due_date|date:"M d, Y H:i" }}</small>
+                        {% if project.due_date < project.submitted_at %}
+                            <br><span class="badge bg-warning">Late Submission</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-muted">Description</h6>
+                    <p>{{ project.description|linebreaks }}</p>
+                </div>
+                
+                {% if project.file_upload %}
+                <div class="mb-3">
+                    <h6 class="text-muted">Attached File</h6>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark me-2"></i>
+                        <span class="me-3">{{ project.file_upload.name|basename }}</span>
+                        <a href="{% url 'project_download' project.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Grading Form -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clipboard-check"></i> Grading Rubric</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="gradingForm">
+                    {% csrf_token %}
+                    
+                    <!-- Rubric Scoring -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.content_score.id_for_label }}" class="form-label">
+                                <strong>Content Quality</strong>
+                            </label>
+                            {{ form.content_score }}
+                            <div class="form-text">{{ form.content_score.help_text }}</div>
+                            {% if form.content_score.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.content_score.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.presentation_score.id_for_label }}" class="form-label">
+                                <strong>Presentation & Structure</strong>
+                            </label>
+                            {{ form.presentation_score }}
+                            <div class="form-text">{{ form.presentation_score.help_text }}</div>
+                            {% if form.presentation_score.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.presentation_score.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.creativity_score.id_for_label }}" class="form-label">
+                                <strong>Creativity & Innovation</strong>
+                            </label>
+                            {{ form.creativity_score }}
+                            <div class="form-text">{{ form.creativity_score.help_text }}</div>
+                            {% if form.creativity_score.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.creativity_score.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.technical_score.id_for_label }}" class="form-label">
+                                <strong>Technical Implementation</strong>
+                            </label>
+                            {{ form.technical_score }}
+                            <div class="form-text">{{ form.technical_score.help_text }}</div>
+                            {% if form.technical_score.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.technical_score.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Total Score Display -->
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>Total Score:</strong></span>
+                            <span class="h5 mb-0" id="totalScore">0/100</span>
+                        </div>
+                        <div class="mt-1">
+                            <small>Letter Grade: <span id="letterGrade">F</span></small>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback -->
+                    <div class="mb-4">
+                        <label for="{{ form.feedback.id_for_label }}" class="form-label">
+                            <strong>Feedback for Student</strong>
+                        </label>
+                        {{ form.feedback }}
+                        {% if form.feedback.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.feedback.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'teacher_projects' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg"></i> {% if is_editing %}Update Grade{% else %}Submit Grade{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Grading Guidelines -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list-check"></i> Grading Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <h6>Content Quality (0-25 points)</h6>
+                <ul class="small">
+                    <li><strong>20-25:</strong> Exceptional quality and depth</li>
+                    <li><strong>15-19:</strong> Good quality with minor issues</li>
+                    <li><strong>10-14:</strong> Adequate but needs improvement</li>
+                    <li><strong>0-9:</strong> Poor quality or incomplete</li>
+                </ul>
+                
+                <h6>Presentation & Structure (0-25 points)</h6>
+                <ul class="small">
+                    <li><strong>20-25:</strong> Excellent organization and clarity</li>
+                    <li><strong>15-19:</strong> Well-structured with minor issues</li>
+                    <li><strong>10-14:</strong> Adequate structure</li>
+                    <li><strong>0-9:</strong> Poor organization</li>
+                </ul>
+                
+                <h6>Creativity & Innovation (0-25 points)</h6>
+                <ul class="small">
+                    <li><strong>20-25:</strong> Highly creative and original</li>
+                    <li><strong>15-19:</strong> Shows creativity</li>
+                    <li><strong>10-14:</strong> Some creative elements</li>
+                    <li><strong>0-9:</strong> Lacks creativity</li>
+                </ul>
+                
+                <h6>Technical Implementation (0-25 points)</h6>
+                <ul class="small">
+                    <li><strong>20-25:</strong> Excellent technical execution</li>
+                    <li><strong>15-19:</strong> Good technical quality</li>
+                    <li><strong>10-14:</strong> Adequate implementation</li>
+                    <li><strong>0-9:</strong> Poor technical quality</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scoreInputs = document.querySelectorAll('#gradingForm input[type="number"]');
+    const totalScoreElement = document.getElementById('totalScore');
+    const letterGradeElement = document.getElementById('letterGrade');
+    
+    function calculateTotal() {
+        let total = 0;
+        scoreInputs.forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        
+        totalScoreElement.textContent = total + '/100';
+        
+        // Calculate letter grade
+        let letterGrade = 'F';
+        if (total >= 90) letterGrade = 'A+';
+        else if (total >= 80) letterGrade = 'A';
+        else if (total >= 70) letterGrade = 'B+';
+        else if (total >= 60) letterGrade = 'B';
+        else if (total >= 50) letterGrade = 'C+';
+        else if (total >= 40) letterGrade = 'C';
+        else if (total >= 30) letterGrade = 'D';
+        
+        letterGradeElement.textContent = letterGrade;
+        
+        // Update alert color based on grade
+        const alertElement = totalScoreElement.closest('.alert');
+        alertElement.className = 'alert ';
+        if (total >= 80) alertElement.classList.add('alert-success');
+        else if (total >= 60) alertElement.classList.add('alert-warning');
+        else alertElement.classList.add('alert-danger');
+    }
+    
+    scoreInputs.forEach(input => {
+        input.addEventListener('input', calculateTotal);
+    });
+    
+    // Initial calculation
+    calculateTotal();
+});
+</script>
+{% endblock %}

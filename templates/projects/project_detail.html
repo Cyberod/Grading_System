@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load project_extras %}
+
+{% block title %}{{ project.title }} - Project Details{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-file-earmark-text"></i> {{ project.title }}</h2>
+        <p class="text-muted mb-0">Project Details</p>
+    </div>
+    <a href="{% url 'my_projects' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Projects
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> Project Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="text-muted">Description</h6>
+                    <p>{{ project.description|linebreaks }}</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Teacher</h6>
+                        <p class="mb-0">{{ project.teacher.first_name }} {{ project.teacher.last_name }}</p>
+                        {% if project.teacher.teacher_profile %}
+                            <small class="text-muted">{{ project.teacher.teacher_profile.department }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Due Date</h6>
+                        <p class="mb-0">{{ project.due_date|date:"F d, Y" }}</p>
+                        <small class="text-muted">{{ project.due_date|time:"H:i" }}</small>
+                        {% if project.due_date < now %}
+                            <br><span class="badge bg-danger mt-1">Overdue</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Submitted On</h6>
+                        {% if project.submitted_at %}
+                            <p class="mb-0">{{ project.submitted_at|date:"F d, Y" }}</p>
+                            <small class="text-muted">{{ project.submitted_at|time:"H:i" }}</small>
+                        {% else %}
+                            <span class="text-muted">Not submitted yet</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-muted">Status</h6>
+                        {% if project.is_submitted %}
+                            {% if project.grade %}
+                                <span class="badge bg-success">Graded</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending Review</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">Draft</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if project.file_upload %}
+                <div class="mb-3">
+                    <h6 class="text-muted">Attached File</h6>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark me-2"></i>
+                        <span class="me-3">{{ project.file_upload.name|basename }}</span>
+                        <a href="{% url 'project_download' project.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Grade Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-award"></i> Grade Information</h5>
+            </div>
+            <div class="card-body">
+                {% if project.grade %}
+                    <div class="text-center mb-3">
+                        <div class="display-6 text-success mb-2">{{ project.grade.letter_grade }}</div>
+                        <p class="h4 text-muted">{{ project.grade.score }}%</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-muted">Graded By</h6>
+                        <p class="mb-0">{{ project.grade.teacher.first_name }} {{ project.grade.teacher.last_name }}</p>
+                        <small class="text-muted">{{ project.grade.graded_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                    
+                    {% if project.grade.feedback %}
+                    <div class="mb-3">
+                        <h6 class="text-muted">Feedback</h6>
+                        <div class="bg-light p-3 rounded">
+                            <p class="mb-0">{{ project.grade.feedback|linebreaks }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Not graded yet</p>
+                        <small>Your teacher will grade this project soon.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <div class="text-primary h5">{{ total_projects }}</div>
+                        <small class="text-muted">Total Projects</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-success h5">{{ graded_projects }}</div>
+                        <small class="text-muted">Graded</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add custom filter for basename
+document.addEventListener('DOMContentLoaded', function() {
+    // Any additional JavaScript can go here
+});
+</script>
+{% endblock %}

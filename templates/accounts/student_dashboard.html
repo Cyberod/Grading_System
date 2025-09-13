@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - Grading System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-mortarboard text-primary"></i> Student Dashboard</h2>
+                <p class="text-muted mb-0">Welcome back, {{ user.first_name }}!</p>
+            </div>
+            <div class="text-end">
+                <small class="text-muted">
+                    {% if user.student_profile %}
+                        ID: {{ user.student_profile.student_id }}<br>
+                        Course: {{ user.student_profile.course }}
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Stats -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text" style="font-size: 2rem;"></i>
+                <h4 class="mt-2">{{ total_projects }}</h4>
+                <p class="mb-0">Projects Submitted</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle" style="font-size: 2rem;"></i>
+                <h4 class="mt-2">{{ graded_projects }}</h4>
+                <p class="mb-0">Graded Projects</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                <h4 class="mt-2">{{ pending_projects }}</h4>
+                <p class="mb-0">Pending Review</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+                <h4 class="mt-2">{% if average_score %}{{ average_score }}%{% else %}-{% endif %}</h4>
+                <p class="mb-0">Average Grade</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Projects -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-folder"></i> My Projects</h5>
+                <a href="{% url 'submit_project' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus"></i> Submit New Project
+                </a>
+            </div>
+            <div class="card-body">
+                {% if projects %}
+                    {% for project in projects %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ project.title }}</h6>
+                                    <p class="text-muted small mb-1">{{ project.description|truncatewords:20 }}</p>
+                                    <small class="text-muted">
+                                        Submitted: {{ project.submitted_at|date:"M d, Y H:i" }}
+                                        | Teacher: {{ project.teacher.first_name }} {{ project.teacher.last_name }}
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    {% if project.grade %}
+                                        <span class="badge bg-success">{{ project.grade.letter_grade }} ({{ project.grade.score }}%)</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="text-center">
+                        <a href="{% url 'my_projects' %}" class="btn btn-outline-primary btn-sm">View All Projects</a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-folder2-open text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">No projects submitted yet.</p>
+                        <p class="small text-muted">Projects will appear here once you start submitting them.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Info -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <strong>Name:</strong><br>
+                    <span class="text-muted">{{ user.first_name }} {{ user.last_name }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Email:</strong><br>
+                    <span class="text-muted">{{ user.email }}</span>
+                </div>
+                {% if user.student_profile %}
+                <div class="mb-2">
+                    <strong>Student ID:</strong><br>
+                    <span class="text-muted">{{ user.student_profile.student_id }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Course:</strong><br>
+                    <span class="text-muted">{{ user.student_profile.course }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Year of Study:</strong><br>
+                    <span class="text-muted">Year {{ user.student_profile.year_of_study }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

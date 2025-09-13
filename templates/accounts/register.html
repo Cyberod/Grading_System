@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Grading System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus-fill text-success" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">Create Account</h3>
+                    <p class="text-muted">Join our grading system</p>
+                </div>
+                
+                <form method="post" id="registrationForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                            {{ form.phone_number }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.user_type.id_for_label }}" class="form-label">Account Type</label>
+                            {{ form.user_type }}
+                            {% if form.user_type.errors %}
+                                <div class="invalid-feedback d-block">{{ form.user_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Student-specific fields -->
+                    <div id="studentFields" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.student_id.id_for_label }}" class="form-label">Student ID</label>
+                                {{ form.student_id }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.year_of_study.id_for_label }}" class="form-label">Year of Study</label>
+                                {{ form.year_of_study }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.course.id_for_label }}" class="form-label">Course</label>
+                            {{ form.course }}
+                        </div>
+                    </div>
+                    
+                    <!-- Teacher-specific fields -->
+                    <div id="teacherFields" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.employee_id.id_for_label }}" class="form-label">Employee ID</label>
+                                {{ form.employee_id }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.designation.id_for_label }}" class="form-label">Designation</label>
+                                {{ form.designation }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">Department</label>
+                            {{ form.department }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <div class="invalid-feedback d-block">{{ form.password1.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </button>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-0">Already have an account? 
+                        <a href="{% url 'login' %}" class="text-decoration-none">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
+    const studentFields = document.getElementById('studentFields');
+    const teacherFields = document.getElementById('teacherFields');
+    
+    function toggleFields() {
+        const userType = userTypeSelect.value;
+        if (userType === 'student') {
+            studentFields.classList.remove('d-none');
+            teacherFields.classList.add('d-none');
+        } else if (userType === 'teacher') {
+            teacherFields.classList.remove('d-none');
+            studentFields.classList.add('d-none');
+        } else {
+            studentFields.classList.add('d-none');
+            teacherFields.classList.add('d-none');
+        }
+    }
+    
+    userTypeSelect.addEventListener('change', toggleFields);
+    toggleFields(); // Initial call
+});
+</script>
+{% endblock %}
